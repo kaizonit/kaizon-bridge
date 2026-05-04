@@ -1,28 +1,35 @@
 name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
+# حل مشكلة Node.js 24 التي ظهرت في رسالة الخطأ
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # 1. إعداد دوكر بمحرك كسر الحظر
-      - name: Setup Docker Mirror
-        uses: docker-practice/actions-setup-docker@master
-
-      # 2. سحب الصور وحفظها (ستنجح الآن لأن المحرك يستخدم مرايا داخلية لـ GitHub)
-      - name: Pull and Save Typebot
+      # 1. سحب الصور باستخدام مرايا داخلية فائقة السرعة لتجنب الحظر
+      - name: Pull Images
         run: |
-          docker pull typebot/studio:latest
-          docker pull typebot/viewer:latest
-          docker save typebot/studio:latest | gzip > studio.tar.gz
-          docker save typebot/viewer:latest | gzip > viewer.tar.gz
+          docker pull m.daocloud.io/docker.io/typebot/studio:latest
+          docker pull m.daocloud.io/docker.io/typebot/viewer:latest
+          docker pull m.daocloud.io/docker.io/evolutionapi/evolution-api:latest
 
-      # 3. رفع الملفات إلى خزنة GitHub الآمنة (Artifacts)
-      - name: Upload to GitHub Vault
+      # 2. تحويل الصور إلى ملفات مضغوطة
+      - name: Save and Compress
+        run: |
+          docker save m.daocloud.io/docker.io/typebot/studio:latest | gzip > studio.tar.gz
+          docker save m.daocloud.io/docker.io/typebot/viewer:latest | gzip > viewer.tar.gz
+          docker save m.daocloud.io/docker.io/evolutionapi/evolution-api:latest | gzip > evolution.tar.gz
+
+      # 3. رفع الملفات إلى خزنة GitHub (Artifacts)
+      - name: Upload Pack
         uses: actions/upload-artifact@v4
         with:
-          name: typebot-sovereign-pack
+          name: kaizon-2026-pack
           path: |
             studio.tar.gz
             viewer.tar.gz
+            evolution.tar.gz
           retention-days: 1
