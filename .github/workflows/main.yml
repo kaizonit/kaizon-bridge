@@ -4,28 +4,29 @@ on: [workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Install Skopeo
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y skopeo
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Pull Evolution API (From Stable Mirror)
+      - name: Pull and Save Images (Verified Sources)
         run: |
-          skopeo copy --src-no-creds docker://public.ecr.aws/v2p3g7r3/evolution-api:latest docker-archive:evolution.tar:evolutionapi/evolution-api:latest
+          # سحب النسخ الرسمية من مستودع GitHub مباشرة (لا يرفض الطلب أبداً)
+          docker pull ghcr.io/evolution-api/evolution-api:latest
+          docker pull ghcr.io/elestio-examples/typebot-studio:latest
+          docker pull ghcr.io/elestio-examples/typebot-viewer:latest
+          
+          # تحويلها لملفات
+          docker save ghcr.io/evolution-api/evolution-api:latest -o evolution.tar
+          docker save ghcr.io/elestio-examples/typebot-studio:latest -o studio.tar
+          docker save ghcr.io/elestio-examples/typebot-viewer:latest -o viewer.tar
 
-      - name: Pull Typebot Studio (From Stable Mirror)
-        run: |
-          skopeo copy --src-no-creds docker://public.ecr.aws/v2p3g7r3/typebot-studio:latest docker-archive:studio.tar:typebot/studio:latest
-
-      - name: Pull Typebot Viewer (From Stable Mirror)
-        run: |
-          skopeo copy --src-no-creds docker://public.ecr.aws/v2p3g7r3/typebot-viewer:latest docker-archive:viewer.tar:typebot/viewer:latest
-
-      - name: Upload Images
+      - name: Upload Sovereign Pack
         uses: actions/upload-artifact@v4
         with:
-          name: kaizon-pack
+          name: kaizon-master-pack
           path: |
             evolution.tar
             studio.tar
