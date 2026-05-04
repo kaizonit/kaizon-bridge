@@ -2,21 +2,27 @@ name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
 jobs:
-  transfer:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Pull and Save Images
+      # 1. إعداد دوكر بمحرك كسر الحظر
+      - name: Setup Docker Mirror
+        uses: docker-practice/actions-setup-docker@master
+
+      # 2. سحب الصور وحفظها (ستنجح الآن لأن المحرك يستخدم مرايا داخلية لـ GitHub)
+      - name: Pull and Save Typebot
         run: |
-          # سحب الصور (هنا سينجح لأن سيرفرات GitHub غير محظورة)
           docker pull typebot/studio:latest
           docker pull typebot/viewer:latest
-          
-          # تحويل الصور لملفات مضغوطة
           docker save typebot/studio:latest | gzip > studio.tar.gz
           docker save typebot/viewer:latest | gzip > viewer.tar.gz
 
-      - name: Generate Direct Download Links
-        run: |
-          # رفع الملفات لخدمة التحميل المباشر
-          echo "STUDIO_LINK=$(curl --upload-file ./studio.tar.gz https://transfer.sh/studio.tar.gz)" >> $GITHUB_STEP_SUMMARY
-          echo "VIEWER_LINK=$(curl --upload-file ./viewer.tar.gz https://transfer.sh/viewer.tar.gz)" >> $GITHUB_STEP_SUMMARY
+      # 3. رفع الملفات إلى خزنة GitHub الآمنة (Artifacts)
+      - name: Upload to GitHub Vault
+        uses: actions/upload-artifact@v4
+        with:
+          name: typebot-sovereign-pack
+          path: |
+            studio.tar.gz
+            viewer.tar.gz
+          retention-days: 1
