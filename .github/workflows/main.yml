@@ -5,23 +5,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: System Cleanup
-        run: docker system prune -af
-
-      - name: Pull Evolution API
+      - name: Pull Evolution API (from GitHub Registry)
         run: |
-          docker pull evolutionapi/evolution-api:latest
-          docker save evolutionapi/evolution-api:latest -o evolution.tar
+          docker pull ghcr.io/evolution-api/evolution-api:latest
+          docker save ghcr.io/evolution-api/evolution-api:latest -o evolution.tar
 
-      - name: Pull Typebot Studio
+      - name: Pull Typebot Studio (from GitHub Registry)
         run: |
-          docker pull typebot/studio:latest
-          docker save typebot/studio:latest -o studio.tar
+          docker pull ghcr.io/elestio-examples/typebot-studio:latest
+          docker save ghcr.io/elestio-examples/typebot-studio:latest -o studio.tar
 
-      - name: Pull Typebot Viewer
+      - name: Pull Typebot Viewer (from GitHub Registry)
         run: |
-          docker pull typebot/viewer:latest
-          docker save typebot/viewer:latest -o viewer.tar
+          docker pull ghcr.io/elestio-examples/typebot-viewer:latest
+          docker save ghcr.io/elestio-examples/typebot-viewer:latest -o viewer.tar
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
