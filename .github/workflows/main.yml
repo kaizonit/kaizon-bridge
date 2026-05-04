@@ -10,22 +10,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y skopeo
 
-      - name: Force Pull Evolution API
+      - name: Pull Evolution API (From Stable Mirror)
         run: |
-          skopeo copy --src-no-creds docker://docker.io/evolutionapi/evolution-api:latest docker-archive:evolution.tar:evolutionapi/evolution-api:latest
+          skopeo copy --src-no-creds docker://public.ecr.aws/v2p3g7r3/evolution-api:latest docker-archive:evolution.tar:evolutionapi/evolution-api:latest
 
-      - name: Force Pull Typebot Studio
+      - name: Pull Typebot Studio (From Stable Mirror)
         run: |
-          skopeo copy --src-no-creds docker://docker.io/typebot/studio:latest docker-archive:studio.tar:typebot/studio:latest
+          skopeo copy --src-no-creds docker://public.ecr.aws/v2p3g7r3/typebot-studio:latest docker-archive:studio.tar:typebot/studio:latest
 
-      - name: Force Pull Typebot Viewer
+      - name: Pull Typebot Viewer (From Stable Mirror)
         run: |
-          skopeo copy --src-no-creds docker://docker.io/typebot/viewer:latest docker-archive:viewer.tar:typebot/viewer:latest
+          skopeo copy --src-no-creds docker://public.ecr.aws/v2p3g7r3/typebot-viewer:latest docker-archive:viewer.tar:typebot/viewer:latest
 
-      - name: Upload Sovereign Images
+      - name: Upload Images
         uses: actions/upload-artifact@v4
         with:
-          name: kaizon-sovereign-pack
+          name: kaizon-pack
           path: |
             evolution.tar
             studio.tar
