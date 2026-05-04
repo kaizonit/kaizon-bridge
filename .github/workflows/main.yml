@@ -1,26 +1,34 @@
 name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Pull and Save Images
+      - name: System Cleanup
+        run: docker system prune -af
+
+      - name: Pull Evolution API
         run: |
           docker pull evolutionapi/evolution-api:latest
-          docker pull typebot/studio:latest
-          docker pull typebot/viewer:latest
           docker save evolutionapi/evolution-api:latest -o evolution.tar
+
+      - name: Pull Typebot Studio
+        run: |
+          docker pull typebot/studio:latest
           docker save typebot/studio:latest -o studio.tar
+
+      - name: Pull Typebot Viewer
+        run: |
+          docker pull typebot/viewer:latest
           docker save typebot/viewer:latest -o viewer.tar
-      - name: Upload Evolution
+
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: evolution-tar
-          path: evolution.tar
-      - name: Upload Typebot
-        uses: actions/upload-artifact@v4
-        with:
-          name: typebot-tars
+          name: kaizon-images
           path: |
+            evolution.tar
             studio.tar
             viewer.tar
+          retention-days: 1
