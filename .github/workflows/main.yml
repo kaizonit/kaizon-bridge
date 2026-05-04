@@ -2,33 +2,26 @@ name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: write
+      contents: write
     steps:
-      - name: Login to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Pull and Save Images (Verified Sources)
+      - name: Pull and Save Typebot
         run: |
-          # سحب النسخ الرسمية من مستودع GitHub مباشرة (لا يرفض الطلب أبداً)
-          docker pull ghcr.io/evolution-api/evolution-api:latest
-          docker pull ghcr.io/elestio-examples/typebot-studio:latest
-          docker pull ghcr.io/elestio-examples/typebot-viewer:latest
-          
-          # تحويلها لملفات
-          docker save ghcr.io/evolution-api/evolution-api:latest -o evolution.tar
-          docker save ghcr.io/elestio-examples/typebot-studio:latest -o studio.tar
-          docker save ghcr.io/elestio-examples/typebot-viewer:latest -o viewer.tar
+          docker pull typebot/studio:latest
+          docker pull typebot/viewer:latest
+          docker save typebot/studio:latest -o studio.tar
+          docker save typebot/viewer:latest -o viewer.tar
+          gzip studio.tar
+          gzip viewer.tar
 
-      - name: Upload Sovereign Pack
-        uses: actions/upload-artifact@v4
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: kaizon-master-pack
-          path: |
-            evolution.tar
-            studio.tar
-            viewer.tar
-          retention-days: 1
+          tag_name: v1.0.${{ github.run_number }}
+          files: |
+            studio.tar.gz
+            viewer.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
