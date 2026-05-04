@@ -5,25 +5,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Pull Evolution API (from GitHub Registry)
+      - name: Pull Evolution API (Public Mirror)
         run: |
-          docker pull ghcr.io/evolution-api/evolution-api:latest
-          docker save ghcr.io/evolution-api/evolution-api:latest -o evolution.tar
+          docker pull elestio/evolution-api:latest
+          docker save elestio/evolution-api:latest -o evolution.tar
 
-      - name: Pull Typebot Studio (from GitHub Registry)
+      - name: Pull Typebot Studio (Public Mirror)
         run: |
-          docker pull ghcr.io/elestio-examples/typebot-studio:latest
-          docker save ghcr.io/elestio-examples/typebot-studio:latest -o studio.tar
+          docker pull elestio/typebot-studio:latest
+          docker save elestio/typebot-studio:latest -o studio.tar
 
-      - name: Pull Typebot Viewer (from GitHub Registry)
+      - name: Pull Typebot Viewer (Public Mirror)
         run: |
-          docker pull ghcr.io/elestio-examples/typebot-viewer:latest
-          docker save ghcr.io/elestio-examples/typebot-viewer:latest -o viewer.tar
+          docker pull elestio/typebot-viewer:latest
+          docker save elestio/typebot-viewer:latest -o viewer.tar
 
-      - name: Upload Artifacts
+      - name: Upload Images
         uses: actions/upload-artifact@v4
         with:
-          name: kaizon-images
+          name: kaizon-final-images
           path: |
             evolution.tar
             studio.tar
