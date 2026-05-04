@@ -5,25 +5,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Pull Evolution API (Public Mirror)
+      - name: Install Skopeo
         run: |
-          docker pull elestio/evolution-api:latest
-          docker save elestio/evolution-api:latest -o evolution.tar
+          sudo apt-get update
+          sudo apt-get install -y skopeo
 
-      - name: Pull Typebot Studio (Public Mirror)
+      - name: Force Pull Evolution API
         run: |
-          docker pull elestio/typebot-studio:latest
-          docker save elestio/typebot-studio:latest -o studio.tar
+          skopeo copy --src-no-creds docker://docker.io/evolutionapi/evolution-api:latest docker-archive:evolution.tar:evolutionapi/evolution-api:latest
 
-      - name: Pull Typebot Viewer (Public Mirror)
+      - name: Force Pull Typebot Studio
         run: |
-          docker pull elestio/typebot-viewer:latest
-          docker save elestio/typebot-viewer:latest -o viewer.tar
+          skopeo copy --src-no-creds docker://docker.io/typebot/studio:latest docker-archive:studio.tar:typebot/studio:latest
 
-      - name: Upload Images
+      - name: Force Pull Typebot Viewer
+        run: |
+          skopeo copy --src-no-creds docker://docker.io/typebot/viewer:latest docker-archive:viewer.tar:typebot/viewer:latest
+
+      - name: Upload Sovereign Images
         uses: actions/upload-artifact@v4
         with:
-          name: kaizon-final-images
+          name: kaizon-sovereign-pack
           path: |
             evolution.tar
             studio.tar
