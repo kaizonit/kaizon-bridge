@@ -6,8 +6,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: read
     steps:
-      # 1. بناء محرك الواتساب (النجاح المضمون)
+      # 1. تسجيل الدخول لمستودع GitHub الداخلي (لفتح الممر السيادي)
+      - name: 🔑 Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # 2. بناء محرك الواتساب (النجاح المضمون)
       - name: 🚀 Build Evolution API from Source
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
@@ -16,27 +21,27 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 2. سحب عقل البوت باستخدام مرآة جوجل العالمية (تجاوز الحظر 100%)
-      - name: 🚀 Pull Typebot via Google Mirror
+      # 3. سحب Typebot من مستودع GitHub الرسمي (المسار المضمون 100%)
+      - name: 🚀 Pull Typebot from Official GHCR
         run: |
-          # سحب الصور من ممر جوجل الآمن
-          docker pull mirror.gcr.io/typebot/typebot-builder:latest
-          docker pull mirror.gcr.io/typebot/typebot-viewer:latest
+          # هذه هي المسارات الرسمية لشركة Typebot على GitHub
+          docker pull ghcr.io/baptistearno/typebot-builder:latest
+          docker pull ghcr.io/baptistearno/typebot-viewer:latest
           
           # إعادة التسمية لكي يراها ملف الـ Compose الخاص بك
-          docker tag mirror.gcr.io/typebot/typebot-builder:latest typebot/studio:latest
-          docker tag mirror.gcr.io/typebot/typebot-viewer:latest typebot/viewer:latest
+          docker tag ghcr.io/baptistearno/typebot-builder:latest typebot/studio:latest
+          docker tag ghcr.io/baptistearno/typebot-viewer:latest typebot/viewer:latest
           
           # تحويل الصور لملفات مضغوطة
           docker save typebot/studio:latest | gzip > studio.tar.gz
           docker save typebot/viewer:latest | gzip > viewer.tar.gz
 
-      # 3. إنشاء الإصدار النهائي ورفع الكنوز الثلاثة
+      # 4. إنشاء الإصدار النهائي ورفع الكنوز الثلاثة
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v38.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v38.0 - THE FINAL"
+          tag_name: v39.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v39.0 - GUARANTEED"
           files: |
             evolution.tar.gz
             studio.tar.gz
