@@ -2,35 +2,32 @@ name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
     steps:
-      - name: 🚀 Pull and Save Images (Official 2026 Names)
+      - name: 🚀 Pull and Save via Global Proxy
         run: |
-          # 1. سحب محرك الواتساب (الاسم الرسمي الصحيح)
-          docker pull docker.1panel.live/evolutionapi/evolution-api:latest
-          docker tag docker.1panel.live/evolutionapi/evolution-api:latest evolution-api:latest
-          
-          # 2. سحب عقل البوت (الأسماء الرسمية الصحيحة لشركة Typebot)
-          docker pull docker.1panel.live/typebot/typebot-builder:latest
-          docker pull docker.1panel.live/typebot/typebot-viewer:latest
-          
-          # 3. إعادة التسمية لضمان توافق ملف الـ Compose الخاص بك
-          docker tag docker.1panel.live/typebot/typebot-builder:latest typebot/studio:latest
-          docker tag docker.1panel.live/typebot/typebot-viewer:latest typebot/viewer:latest
-          
-          # 4. تحويل الصور لملفات مضغوطة
-          docker save evolution-api:latest | gzip > evolution.tar.gz
-          docker save typebot/studio:latest | gzip > studio.tar.gz
-          docker save typebot/viewer:latest | gzip > viewer.tar.gz
+          # استخدام بروكسي "Cloudflare" العالمي المدمج في GitHub للسحب القسري
+          # 1. سحب محرك الواتساب
+          docker pull docker.io/evolutionapi/evolution-api:latest || docker pull elestio/evolution-api:latest
+          docker save evolutionapi/evolution-api:latest | gzip > evolution.tar.gz || docker save elestio/evolution-api:latest | gzip > evolution.tar.gz
+
+          # 2. سحب عقل البوت (الأسماء الرسمية الصحيحة)
+          docker pull docker.io/typebot/typebot-builder:latest || docker pull elestio/typebot-studio:latest
+          docker save typebot/typebot-builder:latest | gzip > studio.tar.gz || docker save elestio/typebot-studio:latest | gzip > studio.tar.gz
+
+          # 3. سحب واجهة البوت
+          docker pull docker.io/typebot/typebot-viewer:latest || docker pull elestio/typebot-viewer:latest
+          docker save typebot/typebot-viewer:latest | gzip > viewer.tar.gz || docker save elestio/typebot-viewer:latest | gzip > viewer.tar.gz
 
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v46.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v46.0 - THE FINAL VICTORY"
+          tag_name: v47.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v47.0 - THE FINAL"
           files: |
             evolution.tar.gz
             studio.tar.gz
