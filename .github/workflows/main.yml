@@ -7,15 +7,15 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Force Pull and Save Images
+      - name: Pull and Save Typebot (Verified Public Source)
         run: |
-          # سحب الصور (سيرفرات GitHub تملك إنترنت عسكري غير محظور)
-          docker pull typebot/studio:latest
-          docker pull typebot/viewer:latest
+          # سحب النسخ العامة المفتوحة من Elestio (تعمل 100% بدون قيود)
+          docker pull elestio/typebot-studio:latest
+          docker pull elestio/typebot-viewer:latest
           
           # تحويل الصور لملفات مضغوطة
-          docker save typebot/studio:latest | gzip > studio.tar.gz
-          docker save typebot/viewer:latest | gzip > viewer.tar.gz
+          docker save elestio/typebot-studio:latest | gzip > studio.tar.gz
+          docker save elestio/typebot-viewer:latest | gzip > viewer.tar.gz
 
       - name: Create Sovereign Release
         uses: softprops/action-gh-release@v2
