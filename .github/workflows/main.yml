@@ -1,39 +1,52 @@
-name: Kaizon Sovereign Discovery
+name: Kaizon Sovereign Brute Force
 on: [workflow_dispatch]
 
 jobs:
-  discovery:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: 🔍 Test Path 1 (Docker Hub Official)
-        run: docker pull typebot/studio:latest || echo "PATH_1_FAILED"
-
-      - name: 🔍 Test Path 2 (GHCR - Standard)
-        run: docker pull ghcr.io/typebot/studio:latest || echo "PATH_2_FAILED"
-
-      - name: 🔍 Test Path 3 (GHCR - Org Path)
-        run: docker pull ghcr.io/typebot/typebot/studio:latest || echo "PATH_3_FAILED"
-
-      - name: 🔍 Test Path 4 (Amazon Public ECR Mirror)
-        run: docker pull public.ecr.aws/docker/library/typebot/studio:latest || echo "PATH_4_FAILED"
-
-      - name: 🔍 Test Path 5 (Google Mirror)
-        run: docker pull mirror.gcr.io/typebot/studio:latest || echo "PATH_5_FAILED"
-
-      - name: 🚀 The Winner Path (Build & Release)
+      - name: 🚀 Brute Force Pulling (Trying all 2026 Mirrors)
         run: |
-          # سنختار أول واحد ينجح ونحوله فوراً لملف Tar
-          # سأقوم بتجربة السحب من المصدر الأكثر استقراراً لـ GitHub حالياً
-          docker pull typebot/studio:latest && docker save typebot/studio:latest -o studio.tar
-          docker pull typebot/viewer:latest && docker save typebot/viewer:latest -o viewer.tar
+          # قائمة المرايا السيادية المحدثة لعام 2026
+          MIRRORS=("docker.anyhub.us.kg" "docker.1panel.live" "dockerpull.com" "docker.m.daocloud.io" "docker.unsee.tech")
           
-      - name: Create Sovereign Release
+          SUCCESS=false
+          for mirror in "${MIRRORS[@]}"; do
+            echo "Trying mirror: $mirror"
+            if docker pull $mirror/typebot/studio:latest; then
+              echo "✅ SUCCESS WITH $mirror"
+              docker tag $mirror/typebot/studio:latest typebot/studio:latest
+              docker pull $mirror/typebot/viewer:latest
+              docker tag $mirror/typebot/viewer:latest typebot/viewer:latest
+              SUCCESS=true
+              break
+            fi
+          done
+
+          if [ "$SUCCESS" = false ]; then
+            echo "❌ ALL MIRRORS FAILED - TRYING GHCR PRIVATE PATH"
+            docker pull ghcr.io/typebot/typebot/studio:latest && \
+            docker tag ghcr.io/typebot/typebot/studio:latest typebot/studio:latest && \
+            docker pull ghcr.io/typebot/typebot/viewer:latest && \
+            docker tag ghcr.io/typebot/typebot/viewer:latest typebot/viewer:latest && SUCCESS=true
+          fi
+
+          if [ "$SUCCESS" = false ]; then exit 1; fi
+
+      - name: 📦 Save and Compress (The Physical Pack)
+        run: |
+          docker save typebot/studio:latest | gzip > studio.tar.gz
+          docker save typebot/viewer:latest | gzip > viewer.tar.gz
+
+      - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v3.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v3.0"
+          tag_name: v4.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v4.0"
           files: |
-            studio.tar
-            viewer.tar
+            studio.tar.gz
+            viewer.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
