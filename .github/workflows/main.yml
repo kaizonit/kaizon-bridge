@@ -6,32 +6,47 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: read
     steps:
-      - name: 🔑 Authenticate with GitHub Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: 🚀 Pull Official Images (The Sovereign Path)
+      - name: 🚀 Pulling with Triple-Source Logic
         run: |
-          # السحب من مستودع GitHub الرسمي مباشرة باستخدام التوثيق
-          docker pull ghcr.io/typebot/typebot/studio:latest
-          docker pull ghcr.io/typebot/typebot/viewer:latest
-          
-          # إعادة التسمية للأسماء الأصلية
-          docker tag ghcr.io/typebot/typebot/studio:latest typebot/studio:latest
-          docker tag ghcr.io/typebot/typebot/viewer:latest typebot/viewer:latest
+          # دالة ذكية للسحب من عدة مصادر لضمان النجاح
+          pull_image() {
+            local target=$1
+            local sources=($2)
+            for src in "${sources[@]}"; do
+              echo "Trying to pull $target from $src..."
+              if docker pull $src; then
+                docker tag $src $target
+                echo "✅ Successfully pulled $target from $src"
+                return 0
+              fi
+            done
+            echo "❌ All sources failed for $target"
+            return 1
+          }
 
-      - name: 📦 Save and Compress (Physical Injection)
+          # 1. سحب محرك الواتساب
+          pull_image "evolution-api:latest" "evolutionapi/evolution-api:latest elestio/evolution-api:latest ghcr.io/evolution-api/evolution-api:latest"
+
+          # 2. سحب عقل البوت (Studio)
+          pull_image "typebot-studio:latest" "typebot/studio:latest elestio/typebot-studio:latest ghcr.io/typebot/studio:latest"
+
+          # 3. سحب واجهة البوت (Viewer)
+          pull_image "typebot-viewer:latest" "typebot/viewer:latest elestio/typebot-viewer:latest ghcr.io/typebot/viewer:latest"
+
+      - name: 📦 Save and Compress
         run: |
-          docker save typebot/studio:latest | gzip > studio.tar.gz
-          docker save typebot/viewer:latest | gzip > viewer.tar.gz
+          docker save evolution-api:latest | gzip > evolution.tar.gz
+          docker save typebot-studio:latest | gzip > studio.tar.gz
+          docker save typebot-viewer:latest | gzip > viewer.tar.gz
 
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v5.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v5.0"
+          tag_name: v6.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v6.0"
           files: |
+            evolution.tar.gz
             studio.tar.gz
             viewer.tar.gz
         env:
