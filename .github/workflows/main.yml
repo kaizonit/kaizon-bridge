@@ -1,36 +1,39 @@
-name: Kaizon Sovereign Bridge v50
+name: Kaizon Sovereign Bridge v51
 on: [workflow_dispatch]
 
 jobs:
   build-and-transfer:
     runs-on: ubuntu-latest
     steps:
-      - name: 🚀 Pull and Save Images
+      # 1. بناء محرك الواتساب من "المواد الخام" (هذا المسار مستحيل حظره)
+      - name: 🛠️ Build Evolution API from Source
         run: |
-          # 1. سحب الصور (هنا سينجح لأن GitHub غير محظور)
-          docker pull evolutionapi/evolution-api:latest
-          docker pull typebot/typebot-builder:latest
-          docker pull typebot/typebot-viewer:latest
-          
-          # 2. تحويل الصور لملفات مضغوطة
-          docker save evolutionapi/evolution-api:latest | gzip > evolution.tar.gz
-          docker save typebot/typebot-builder:latest | gzip > studio.tar.gz
-          docker save typebot/typebot-viewer:latest | gzip > viewer.tar.gz
+          git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
+          cd evolution-api
+          docker build -t evolution-api:latest .
+          docker save evolution-api:latest | gzip > ../evolution.tar.gz
+          cd ..
 
+      # 2. جلب عقل البوت من مستودع Elestio المفتوح (تجاوز حظر Docker Hub)
+      - name: 🚀 Pull Typebot from Verified Public Mirror
+        run: |
+          # سحب النسخ العامة من Elestio على مستودع GitHub (مفتوح 100%)
+          docker pull ghcr.io/elestio-examples/typebot-studio:latest
+          docker pull ghcr.io/elestio-examples/typebot-viewer:latest
+          
+          # تحويل الصور لملفات مضغوطة
+          docker save ghcr.io/elestio-examples/typebot-studio:latest | gzip > studio.tar.gz
+          docker save ghcr.io/elestio-examples/typebot-viewer:latest | gzip > viewer.tar.gz
+
+      # 3. رفع الملفات والحصول على روابط تحميل مباشرة (عبر Transfer.sh)
       - name: 📤 Generate Direct Download Links
         run: |
-          # رفع الملفات لخدمة Transfer.sh العالمية للحصول على روابط HTTP مباشرة
-          echo "### 🛡️ Kaizon Sovereign Download Links" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Kaizon Sovereign Pack v51" >> $GITHUB_STEP_SUMMARY
           
-          STUDIO_URL=$(curl --upload-file ./studio.tar.gz https://transfer.sh/studio.tar.gz)
-          VIEWER_URL=$(curl --upload-file ./viewer.tar.gz https://transfer.sh/viewer.tar.gz)
-          EVO_URL=$(curl --upload-file ./evolution.tar.gz https://transfer.sh/evolution.tar.gz)
+          STUDIO_URL=$(curl --upload-file ./studio.tar.gz https://transfer.sh/studio_kzn.tar.gz)
+          VIEWER_URL=$(curl --upload-file ./viewer.tar.gz https://transfer.sh/viewer_kzn.tar.gz)
+          EVO_URL=$(curl --upload-file ./evolution.tar.gz https://transfer.sh/evolution_kzn.tar.gz)
           
           echo "- **Studio:** $STUDIO_URL" >> $GITHUB_STEP_SUMMARY
           echo "- **Viewer:** $VIEWER_URL" >> $GITHUB_STEP_SUMMARY
           echo "- **Evolution:** $EVO_URL" >> $GITHUB_STEP_SUMMARY
-          
-          # طباعة الروابط في اللوج أيضاً للضمان
-          echo "Studio: $STUDIO_URL"
-          echo "Viewer: $VIEWER_URL"
-          echo "Evolution: $EVO_URL"
