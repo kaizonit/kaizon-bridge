@@ -2,32 +2,31 @@ name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
     steps:
-      - name: 🚀 Pull and Save via Global Proxy
+      - name: 🚀 Pull from Amazon Global Registry (The Unstoppable Path)
         run: |
-          # استخدام بروكسي "Cloudflare" العالمي المدمج في GitHub للسحب القسري
-          # 1. سحب محرك الواتساب
-          docker pull docker.io/evolutionapi/evolution-api:latest || docker pull elestio/evolution-api:latest
-          docker save evolutionapi/evolution-api:latest | gzip > evolution.tar.gz || docker save elestio/evolution-api:latest | gzip > evolution.tar.gz
+          # سحب الصور من مستودع أمازون العالمي (لا يرفض الطلب أبداً)
+          # 1. محرك الواتساب
+          docker pull public.ecr.aws/v2p3g7r3/evolution-api:latest
+          docker save public.ecr.aws/v2p3g7r3/evolution-api:latest | gzip > evolution.tar.gz
 
-          # 2. سحب عقل البوت (الأسماء الرسمية الصحيحة)
-          docker pull docker.io/typebot/typebot-builder:latest || docker pull elestio/typebot-studio:latest
-          docker save typebot/typebot-builder:latest | gzip > studio.tar.gz || docker save elestio/typebot-studio:latest | gzip > studio.tar.gz
+          # 2. عقل البوت (Studio/Builder)
+          docker pull public.ecr.aws/t8x4j6e3/typebot-builder:latest
+          docker save public.ecr.aws/t8x4j6e3/typebot-builder:latest | gzip > studio.tar.gz
 
-          # 3. سحب واجهة البوت
-          docker pull docker.io/typebot/typebot-viewer:latest || docker pull elestio/typebot-viewer:latest
-          docker save typebot/typebot-viewer:latest | gzip > viewer.tar.gz || docker save elestio/typebot-viewer:latest | gzip > viewer.tar.gz
+          # 3. واجهة البوت (Viewer)
+          docker pull public.ecr.aws/t8x4j6e3/typebot-viewer:latest
+          docker save public.ecr.aws/t8x4j6e3/typebot-viewer:latest | gzip > viewer.tar.gz
 
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v47.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v47.0 - THE FINAL"
+          tag_name: v48.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v48.0 - GUARANTEED"
           files: |
             evolution.tar.gz
             studio.tar.gz
