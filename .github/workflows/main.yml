@@ -2,49 +2,40 @@ name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: 🚀 Pulling with Triple-Source Logic
+      - name: 🚀 Build Evolution API from Source
         run: |
-          # دالة ذكية للسحب من عدة مصادر لضمان النجاح
-          pull_image() {
-            local target=$1
-            local sources=($2)
-            for src in "${sources[@]}"; do
-              echo "Trying to pull $target from $src..."
-              if docker pull $src; then
-                docker tag $src $target
-                echo "✅ Successfully pulled $target from $src"
-                return 0
-              fi
-            done
-            echo "❌ All sources failed for $target"
-            return 1
-          }
+          git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
+          cd evolution-api
+          docker build -t evolution-api:latest .
+          docker save evolution-api:latest | gzip > ../evolution.tar.gz
+          cd ..
 
-          # 1. سحب محرك الواتساب
-          pull_image "evolution-api:latest" "evolutionapi/evolution-api:latest elestio/evolution-api:latest ghcr.io/evolution-api/evolution-api:latest"
-
-          # 2. سحب عقل البوت (Studio)
-          pull_image "typebot-studio:latest" "typebot/studio:latest elestio/typebot-studio:latest ghcr.io/typebot/studio:latest"
-
-          # 3. سحب واجهة البوت (Viewer)
-          pull_image "typebot-viewer:latest" "typebot/viewer:latest elestio/typebot-viewer:latest ghcr.io/typebot/viewer:latest"
-
-      - name: 📦 Save and Compress
+      - name: 🚀 Build Typebot Studio from Source
         run: |
-          docker save evolution-api:latest | gzip > evolution.tar.gz
-          docker save typebot-studio:latest | gzip > studio.tar.gz
-          docker save typebot-viewer:latest | gzip > viewer.tar.gz
+          git clone --depth 1 https://github.com/baptisteArno/typebot.io.git
+          cd typebot.io
+          # بناء النسخ الخفيفة لضمان السرعة والنجاح
+          docker build -t typebot-studio:latest -f apps/studio/Dockerfile .
+          docker save typebot-studio:latest | gzip > ../studio.tar.gz
+          cd ..
+
+      - name: 🚀 Build Typebot Viewer from Source
+        run: |
+          cd typebot.io
+          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
+          docker save typebot-viewer:latest | gzip > ../viewer.tar.gz
+          cd ..
 
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v6.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v6.0"
+          tag_name: v10.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v10.0"
           files: |
             evolution.tar.gz
             studio.tar.gz
