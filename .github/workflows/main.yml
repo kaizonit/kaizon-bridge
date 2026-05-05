@@ -1,47 +1,25 @@
-name: Kaizon Sovereign Bridge v60
+name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
 jobs:
-  build-everything:
+  build:
     runs-on: ubuntu-latest
     steps:
-      # 1. بناء محرك الواتساب (Evolution API) - النجاح المضمون
-      - name: 🛠️ Build Evolution API
+      - name: 🚀 Pull and Save Images
         run: |
-          git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
-          cd evolution-api
-          docker build -t evolution-api:latest .
-          docker save evolution-api:latest > ../evolution.tar
-          cd ..
+          # سحب الصور (سيرفرات GitHub تملك إنترنت عسكري غير محظور)
+          docker pull evolutionapi/evolution-api:latest
+          docker pull typebot/builder:latest
+          docker pull typebot/viewer:latest
+          
+          # تحويل الصور لملفات Tar
+          docker save evolutionapi/evolution-api:latest -o evolution.tar
+          docker save typebot/builder:latest -o studio.tar
+          docker save typebot/viewer:latest -o viewer.tar
 
-      # 2. بناء عقل البوت (Typebot Builder) - تم تصحيح المسار 100%
-      - name: 🛠️ Build Typebot Builder
-        run: |
-          git clone --depth 1 https://github.com/typebot-io/typebot.io.git
-          cd typebot.io
-          # السر هنا: استخدام السياق الكامل للمجلد لبناء الاستوديو
-          docker build -t typebot-studio:latest -f apps/builder/Dockerfile .
-          docker save typebot-studio:latest > ../studio.tar
-          cd ..
-
-      # 3. بناء واجهة البوت (Typebot Viewer) - تم تصحيح المسار 100%
-      - name: 🛠️ Build Typebot Viewer
-        run: |
-          cd typebot.io
-          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
-          docker save typebot-viewer:latest > ../viewer.tar
-          cd ..
-
-      # 4. تجميع الكنوز في ملف واحد مضغوط
       - name: 📦 Create Sovereign Pack
-        run: |
-          tar -cvf kaizon_master_pack.tar evolution.tar studio.tar viewer.tar
-          gzip kaizon_master_pack.tar
-
-      # 5. الرفع إلى خزنة GitHub (Artifacts) - التحميل المباشر لابتوبك
-      - name: 📤 Upload to GitHub Vault
         uses: actions/upload-artifact@v4
         with:
-          name: kaizon-final-package
-          path: kaizon_master_pack.tar.gz
+          name: kaizon-sovereign-pack
+          path: "*.tar"
           retention-days: 1
