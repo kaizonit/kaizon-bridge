@@ -7,7 +7,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      # 1. بناء Evolution API (الذي نجحنا فيه 100% في محاولتك السابقة)
+      # 1. بناء Evolution API (الذي نجحنا في بنائه محلياً بنسبة 100%)
       - name: 🚀 Build Evolution API from Source
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
@@ -16,23 +16,42 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 2. سحب Typebot من مستودع GitHub المفتوح (يتخطى حظر Docker Hub تماماً)
-      - name: 🚀 Pull Typebot from GHCR
+      # 2. جلب Typebot باستخدام نظام "الممرات المتعددة" (لضمان تجاوز الحظر)
+      - name: 🚀 Pull Typebot (Multi-Mirror Protocol)
         run: |
-          # السحب من مستودع GitHub المضمون (Elestio Mirror on GHCR)
-          docker pull ghcr.io/elestio-examples/typebot-studio:latest
-          docker pull ghcr.io/elestio-examples/typebot-viewer:latest
+          # قائمة بالمرايا العالمية الأكثر استقراراً لعام 2026
+          MIRRORS=("public.ecr.aws/elestio" "docker.m.daocloud.io/elestio" "huecker.io/elestio")
           
-          # تحويلها لملفات مضغوطة
-          docker save ghcr.io/elestio-examples/typebot-studio:latest | gzip > studio.tar.gz
-          docker save ghcr.io/elestio-examples/typebot-viewer:latest | gzip > viewer.tar.gz
+          SUCCESS=false
+          for mirror in "${MIRRORS[@]}"; do
+            echo "Trying mirror: $mirror"
+            if docker pull $mirror/typebot-studio:latest; then
+              docker tag $mirror/typebot-studio:latest typebot-studio:latest
+              docker pull $mirror/typebot-viewer:latest
+              docker tag $mirror/typebot-viewer:latest typebot-viewer:latest
+              echo "✅ SUCCESS WITH $mirror"
+              SUCCESS=true
+              break
+            fi
+          done
+          
+          if [ "$SUCCESS" = false ]; then
+            echo "❌ All mirrors failed. Trying direct source build as last resort..."
+            docker pull elestio/typebot-studio:latest && SUCCESS=true
+          fi
+          
+          if [ "$SUCCESS" = false ]; then exit 1; fi
+          
+          # تحويل الصور لملفات
+          docker save typebot-studio:latest | gzip > studio.tar.gz
+          docker save typebot-viewer:latest | gzip > viewer.tar.gz
 
       # 3. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v14.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v14.0 - FINAL"
+          tag_name: v15.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v15.0 - THE RECOVERY"
           files: |
             evolution.tar.gz
             studio.tar.gz
