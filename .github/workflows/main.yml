@@ -6,9 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: read
     steps:
-      # 1. بناء Evolution API (الذي نجحنا فيه قبل قليل)
+      # 1. تنصيب أداة الحسم Skopeo
+      - name: Install Skopeo
+        run: sudo apt-get update && sudo apt-get install -y skopeo
+
+      # 2. بناء Evolution API (الذي نجحنا فيه 100%)
       - name: 🚀 Build Evolution API from Source
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
@@ -17,26 +20,23 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 2. سحب Typebot من مستودع GitHub المضمون (لتجنب أخطاء البناء الطويلة)
-      - name: 🚀 Pull Typebot from GHCR
+      # 3. سحب Typebot باستخدام Skopeo (تجاوز أخطاء المانيفست والحظر)
+      - name: 🚀 Pull Typebot via Skopeo
         run: |
-          # تسجيل الدخول لمستودع GitHub لضمان عدم الرفض
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          # سحب النسخ العامة من Elestio (المسارات المصححة 100%)
+          skopeo copy --src-no-creds docker://docker.io/elestio/typebot-studio:latest docker-archive:studio.tar:typebot/studio:latest
+          skopeo copy --src-no-creds docker://docker.io/elestio/typebot-viewer:latest docker-archive:viewer.tar:typebot/viewer:latest
           
-          # سحب النسخ المستقرة
-          docker pull ghcr.io/elestio-examples/typebot-studio:latest
-          docker pull ghcr.io/elestio-examples/typebot-viewer:latest
-          
-          # تحويلها لملفات
-          docker save ghcr.io/elestio-examples/typebot-studio:latest | gzip > studio.tar.gz
-          docker save ghcr.io/elestio-examples/typebot-viewer:latest | gzip > viewer.tar.gz
+          # ضغط الملفات لتقليل الحجم
+          gzip studio.tar
+          gzip viewer.tar
 
-      # 3. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
+      # 4. إنشاء الإصدار ورفع الملفات الثلاثة النهائية
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v12.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v12.0 - FINAL"
+          tag_name: v13.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v13.0 - SUCCESS"
           files: |
             evolution.tar.gz
             studio.tar.gz
