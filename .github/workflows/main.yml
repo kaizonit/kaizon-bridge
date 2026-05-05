@@ -6,14 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: read
     steps:
-      # 1. تسجيل الدخول لمستودع GitHub الداخلي (لفتح الممر السيادي)
-      - name: 🔑 Login to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      # 2. بناء محرك الواتساب (النجاح المضمون)
-      - name: 🚀 Build Evolution API from Source
+      # 1. بناء Evolution API من المصدر (النجاح المضمون)
+      - name: 🚀 Build Evolution API
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
           cd evolution-api
@@ -21,27 +16,30 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 3. سحب Typebot من مستودع GitHub الرسمي (المسار المضمون 100%)
-      - name: 🚀 Pull Typebot from Official GHCR
+      # 2. بناء Typebot Builder (Studio) من المصدر (تجاوز الحصار 100%)
+      - name: 🚀 Build Typebot Builder
         run: |
-          # هذه هي المسارات الرسمية لشركة Typebot على GitHub
-          docker pull ghcr.io/baptistearno/typebot-builder:latest
-          docker pull ghcr.io/baptistearno/typebot-viewer:latest
-          
-          # إعادة التسمية لكي يراها ملف الـ Compose الخاص بك
-          docker tag ghcr.io/baptistearno/typebot-builder:latest typebot/studio:latest
-          docker tag ghcr.io/baptistearno/typebot-viewer:latest typebot/viewer:latest
-          
-          # تحويل الصور لملفات مضغوطة
-          docker save typebot/studio:latest | gzip > studio.tar.gz
-          docker save typebot/viewer:latest | gzip > viewer.tar.gz
+          git clone --depth 1 https://github.com/typebot-io/typebot.io.git
+          cd typebot.io
+          # بناء الاستوديو باستخدام المسار التقني الصحيح للهيكلية
+          docker build -t typebot-studio:latest -f apps/builder/Dockerfile .
+          docker save typebot-studio:latest | gzip > ../studio.tar.gz
 
-      # 4. إنشاء الإصدار النهائي ورفع الكنوز الثلاثة
+      # 3. بناء Typebot Viewer من المصدر (تجاوز الحصار 100%)
+      - name: 🚀 Build Typebot Viewer
+        run: |
+          cd typebot.io
+          # بناء العارض باستخدام المسار التقني الصحيح للهيكلية
+          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
+          docker save typebot-viewer:latest | gzip > ../viewer.tar.gz
+          cd ..
+
+      # 4. إنشاء الإصدار ورفع الملفات الفيزيائية
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v39.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v39.0 - GUARANTEED"
+          tag_name: v40.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v40.0 - THE FINAL SUCCESS"
           files: |
             evolution.tar.gz
             studio.tar.gz
