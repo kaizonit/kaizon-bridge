@@ -16,31 +16,27 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 2. بناء Typebot Studio من المصدر (تجاوز حظر الصور الجاهزة)
-      - name: 🚀 Build Typebot Studio from Source
+      # 2. سحب Typebot بالأسماء الرسمية الصحيحة (تجاوز خطأ المسميات)
+      - name: 🚀 Pull Typebot Official Images
         run: |
-          git clone --depth 1 https://github.com/baptisteArno/typebot.io.git
-          cd typebot.io
-          # بناء الاستوديو باستخدام سياق المجلد الرئيسي (هذا يحل خطأ lstat)
-          docker build -t typebot-studio:latest -f apps/studio/Dockerfile .
-          docker save typebot-studio:latest | gzip > ../studio.tar.gz
-          cd ..
+          # المسميات الصحيحة: builder هو الـ studio
+          docker pull typebot/builder:latest
+          docker pull typebot/viewer:latest
+          
+          # إعادة التسمية لكي تطابق ملف zainab-island.yml الخاص بك
+          docker tag typebot/builder:latest typebot/studio:latest
+          docker tag typebot/viewer:latest typebot/viewer:latest
+          
+          # تحويل الصور لملفات مضغوطة
+          docker save typebot/studio:latest | gzip > studio.tar.gz
+          docker save typebot/viewer:latest | gzip > viewer.tar.gz
 
-      # 3. بناء Typebot Viewer من المصدر (تجاوز حظر الصور الجاهزة)
-      - name: 🚀 Build Typebot Viewer from Source
-        run: |
-          cd typebot.io
-          # بناء العارض باستخدام سياق المجلد الرئيسي
-          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
-          docker save typebot-viewer:latest | gzip > ../viewer.tar.gz
-          cd ..
-
-      # 4. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
+      # 3. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v24.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v24.0 - FINAL SUCCESS"
+          tag_name: v25.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v25.0 - THE FINAL"
           files: |
             evolution.tar.gz
             studio.tar.gz
