@@ -7,22 +7,32 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: 🚀 Pull Images from Verified Public Mirror
+      - name: 🚀 Pull and Save Images (Official 2026 Names)
         run: |
-          # سحب النسخ العامة من Elestio (هذا الممر مفتوح 100% لعام 2026)
-          docker pull ghcr.io/elestio-examples/typebot-studio:latest
-          docker pull ghcr.io/elestio-examples/typebot-viewer:latest
+          # 1. سحب محرك الواتساب (الاسم الرسمي الصحيح)
+          docker pull docker.1panel.live/evolutionapi/evolution-api:latest
+          docker tag docker.1panel.live/evolutionapi/evolution-api:latest evolution-api:latest
           
-          # تحويل الصور لملفات مضغوطة
-          docker save ghcr.io/elestio-examples/typebot-studio:latest | gzip > studio.tar.gz
-          docker save ghcr.io/elestio-examples/typebot-viewer:latest | gzip > viewer.tar.gz
+          # 2. سحب عقل البوت (الأسماء الرسمية الصحيحة لشركة Typebot)
+          docker pull docker.1panel.live/typebot/typebot-builder:latest
+          docker pull docker.1panel.live/typebot/typebot-viewer:latest
+          
+          # 3. إعادة التسمية لضمان توافق ملف الـ Compose الخاص بك
+          docker tag docker.1panel.live/typebot/typebot-builder:latest typebot/studio:latest
+          docker tag docker.1panel.live/typebot/typebot-viewer:latest typebot/viewer:latest
+          
+          # 4. تحويل الصور لملفات مضغوطة
+          docker save evolution-api:latest | gzip > evolution.tar.gz
+          docker save typebot/studio:latest | gzip > studio.tar.gz
+          docker save typebot/viewer:latest | gzip > viewer.tar.gz
 
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v45.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v45.0 - THE VICTORY"
+          tag_name: v46.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v46.0 - THE FINAL VICTORY"
           files: |
+            evolution.tar.gz
             studio.tar.gz
             viewer.tar.gz
         env:
