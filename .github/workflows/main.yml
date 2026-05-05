@@ -6,8 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: read
     steps:
-      # 1. بناء Evolution API (الذي نجحنا فيه 100% سابقاً)
+      # 1. بناء Evolution API (النجاح المضمون الذي حققناه سابقاً)
       - name: 🚀 Build Evolution API from Source
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
@@ -16,23 +17,26 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 2. سحب Typebot من مستودع Amazon AWS المضمون (لا يحظر أحداً)
-      - name: 🚀 Pull Typebot from AWS Public ECR
+      # 2. سحب Typebot من مستودع GitHub الرسمي (باستخدام توثيق سيادي)
+      - name: 🚀 Pull Typebot from GitHub Registry
         run: |
-          # سحب النسخ المستقرة من مستودع أمازون العالمي
-          docker pull public.ecr.aws/t8x4j6e3/typebot-studio:latest
-          docker pull public.ecr.aws/t8x4j6e3/typebot-viewer:latest
+          # تسجيل الدخول لمستودع GitHub الداخلي لفتح الأبواب المغلقة
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          # سحب النسخ الرسمية (المسارات المحدثة 100%)
+          docker pull ghcr.io/typebot/typebot/studio:latest
+          docker pull ghcr.io/typebot/typebot/viewer:latest
           
           # تحويلها لملفات مضغوطة
-          docker save public.ecr.aws/t8x4j6e3/typebot-studio:latest | gzip > studio.tar.gz
-          docker save public.ecr.aws/t8x4j6e3/typebot-viewer:latest | gzip > viewer.tar.gz
+          docker save ghcr.io/typebot/typebot/studio:latest | gzip > studio.tar.gz
+          docker save ghcr.io/typebot/typebot/viewer:latest | gzip > viewer.tar.gz
 
       # 3. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v17.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v17.0 - AWS POWER"
+          tag_name: v18.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v18.0 - THE FINAL"
           files: |
             evolution.tar.gz
             studio.tar.gz
