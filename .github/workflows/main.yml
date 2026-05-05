@@ -2,44 +2,39 @@ name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
 jobs:
-  build-and-release:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      # 1. بناء Evolution API من المصدر (النجاح المضمون 100%)
-      - name: 🚀 Build Evolution API from Source
+      - name: 🚀 Pull Official Typebot Images (The Correct Names)
         run: |
-          git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
-          cd evolution-api
-          docker build -t evolution-api:latest .
-          docker save evolution-api:latest | gzip > ../evolution.tar.gz
-          cd ..
-
-      # 2. سحب Typebot بالأسماء الرسمية الصحيحة (تجاوز خطأ المسميات)
-      - name: 🚀 Pull Typebot Official Images
-        run: |
-          # المسميات الصحيحة: builder هو الـ studio
-          docker pull typebot/builder:latest
-          docker pull typebot/viewer:latest
+          # المسميات الرسمية الصحيحة لعام 2026
+          docker pull typebot/typebot-builder:latest
+          docker pull typebot/typebot-viewer:latest
           
-          # إعادة التسمية لكي تطابق ملف zainab-island.yml الخاص بك
-          docker tag typebot/builder:latest typebot/studio:latest
-          docker tag typebot/viewer:latest typebot/viewer:latest
+          # إعادة التسمية لكي تتوافق مع ملف zainab-island.yml الخاص بك
+          docker tag typebot/typebot-builder:latest typebot/studio:latest
+          docker tag typebot/typebot-viewer:latest typebot/viewer:latest
           
           # تحويل الصور لملفات مضغوطة
           docker save typebot/studio:latest | gzip > studio.tar.gz
           docker save typebot/viewer:latest | gzip > viewer.tar.gz
 
-      # 3. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
+      - name: 🚀 Pull Evolution API (Verified Source)
+        run: |
+          # سحب نسخة Elestio المفتوحة والمضمونة
+          docker pull elestio/evolution-api:latest
+          docker save elestio/evolution-api:latest | gzip > evolution.tar.gz
+
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v25.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v25.0 - THE FINAL"
+          tag_name: v35.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v35.0 - THE LOOP BREAKER"
           files: |
-            evolution.tar.gz
             studio.tar.gz
             viewer.tar.gz
+            evolution.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
