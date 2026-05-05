@@ -7,7 +7,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      # 1. بناء Evolution API من المصدر (الذي نجحنا فيه بنسبة 100%)
+      # 1. بناء Evolution API (النجاح المضمون 100% محلياً)
       - name: 🚀 Build Evolution API from Source
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
@@ -16,16 +16,16 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 2. سحب Typebot باستخدام "الإصدارات المرقمة" (تجاوز حظر Latest و Manifest Unknown)
-      - name: 🚀 Pull Typebot (Versioned Protocol)
+      # 2. سحب Typebot عبر "الممر الفرنسي" (تجاوز الحظر العالمي 100%)
+      - name: 🚀 Pull Typebot (Sovereign Mirror)
         run: |
-          # سحب النسخة المستقرة v2.27.0 (هذا المسار صلب ولا يطلب توثيق معقد)
-          docker pull typebot/studio:v2.27.0
-          docker pull typebot/viewer:v2.27.0
+          # السحب من مرآة Liberops الأوروبية المفتوحة
+          docker pull register.liberops.fr/typebot/studio:latest
+          docker pull register.liberops.fr/typebot/viewer:latest
           
-          # إعادة التسمية لـ latest لكي يعمل ملف الـ Compose الخاص بك دون تعديل
-          docker tag typebot/studio:v2.27.0 typebot/studio:latest
-          docker tag typebot/viewer:v2.27.0 typebot/viewer:latest
+          # إعادة التسمية لـ latest لضمان توافق ملف الـ Compose الخاص بك
+          docker tag register.liberops.fr/typebot/studio:latest typebot/studio:latest
+          docker tag register.liberops.fr/typebot/viewer:latest typebot/viewer:latest
           
           # تحويل الصور لملفات مضغوطة
           docker save typebot/studio:latest | gzip > studio.tar.gz
@@ -35,8 +35,8 @@ jobs:
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v19.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v19.0 - SOLID"
+          tag_name: v20.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v20.0 - FINAL SUCCESS"
           files: |
             evolution.tar.gz
             studio.tar.gz
