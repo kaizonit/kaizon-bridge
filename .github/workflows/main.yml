@@ -1,21 +1,12 @@
-name: Kaizon Sovereign Bridge v54
+name: Kaizon Sovereign Bridge v60
 on: [workflow_dispatch]
 
 jobs:
-  build:
+  build-everything:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Skopeo
-        run: sudo apt-get update && sudo apt-get install -y skopeo
-
-      - name: 🚀 Force Fetch Typebot (Official 2026 Names)
-        run: |
-          # سحب عقل البوت (Builder) والواجهة (Viewer) بالأسماء الرسمية
-          # استخدمنا مرآة m.daocloud.io لأنها الأقوى حالياً لتخطي حظر Docker Hub
-          skopeo copy --src-no-creds docker://docker.m.daocloud.io/typebot/builder:latest docker-archive:studio.tar:typebot/studio:latest
-          skopeo copy --src-no-creds docker://docker.m.daocloud.io/typebot/viewer:latest docker-archive:viewer.tar:typebot/viewer:latest
-
-      - name: 🚀 Build Evolution API (The Proven Success)
+      # 1. بناء محرك الواتساب (Evolution API) - النجاح المضمون
+      - name: 🛠️ Build Evolution API
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
           cd evolution-api
@@ -23,12 +14,34 @@ jobs:
           docker save evolution-api:latest > ../evolution.tar
           cd ..
 
-      - name: 📦 Create Final Sovereign Pack
-        run: tar -cvzf kaizon_final_pack.tar.gz studio.tar viewer.tar evolution.tar
+      # 2. بناء عقل البوت (Typebot Builder) - تم تصحيح المسار 100%
+      - name: 🛠️ Build Typebot Builder
+        run: |
+          git clone --depth 1 https://github.com/typebot-io/typebot.io.git
+          cd typebot.io
+          # السر هنا: استخدام السياق الكامل للمجلد لبناء الاستوديو
+          docker build -t typebot-studio:latest -f apps/builder/Dockerfile .
+          docker save typebot-studio:latest > ../studio.tar
+          cd ..
 
+      # 3. بناء واجهة البوت (Typebot Viewer) - تم تصحيح المسار 100%
+      - name: 🛠️ Build Typebot Viewer
+        run: |
+          cd typebot.io
+          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
+          docker save typebot-viewer:latest > ../viewer.tar
+          cd ..
+
+      # 4. تجميع الكنوز في ملف واحد مضغوط
+      - name: 📦 Create Sovereign Pack
+        run: |
+          tar -cvf kaizon_master_pack.tar evolution.tar studio.tar viewer.tar
+          gzip kaizon_master_pack.tar
+
+      # 5. الرفع إلى خزنة GitHub (Artifacts) - التحميل المباشر لابتوبك
       - name: 📤 Upload to GitHub Vault
         uses: actions/upload-artifact@v4
         with:
-          name: kaizon-master-package
-          path: kaizon_final_pack.tar.gz
+          name: kaizon-final-package
+          path: kaizon_master_pack.tar.gz
           retention-days: 1
