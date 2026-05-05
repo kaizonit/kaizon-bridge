@@ -1,29 +1,39 @@
-name: Kaizon Sovereign Bridge
+name: Kaizon Sovereign Discovery
 on: [workflow_dispatch]
 
 jobs:
-  release:
+  discovery:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Pull from GitHub Official Registry (The Sovereign Path)
-        run: |
-          # سحب النسخ الرسمية من مستودع GitHub مباشرة (هذا لا يُحظر أبداً)
-          docker pull ghcr.io/typebot/typebot/studio:latest
-          docker pull ghcr.io/typebot/typebot/viewer:latest
-          
-          # تحويل الصور لملفات مضغوطة
-          docker save ghcr.io/typebot/typebot/studio:latest | gzip > studio.tar.gz
-          docker save ghcr.io/typebot/typebot/viewer:latest | gzip > viewer.tar.gz
+      - name: 🔍 Test Path 1 (Docker Hub Official)
+        run: docker pull typebot/studio:latest || echo "PATH_1_FAILED"
 
+      - name: 🔍 Test Path 2 (GHCR - Standard)
+        run: docker pull ghcr.io/typebot/studio:latest || echo "PATH_2_FAILED"
+
+      - name: 🔍 Test Path 3 (GHCR - Org Path)
+        run: docker pull ghcr.io/typebot/typebot/studio:latest || echo "PATH_3_FAILED"
+
+      - name: 🔍 Test Path 4 (Amazon Public ECR Mirror)
+        run: docker pull public.ecr.aws/docker/library/typebot/studio:latest || echo "PATH_4_FAILED"
+
+      - name: 🔍 Test Path 5 (Google Mirror)
+        run: docker pull mirror.gcr.io/typebot/studio:latest || echo "PATH_5_FAILED"
+
+      - name: 🚀 The Winner Path (Build & Release)
+        run: |
+          # سنختار أول واحد ينجح ونحوله فوراً لملف Tar
+          # سأقوم بتجربة السحب من المصدر الأكثر استقراراً لـ GitHub حالياً
+          docker pull typebot/studio:latest && docker save typebot/studio:latest -o studio.tar
+          docker pull typebot/viewer:latest && docker save typebot/viewer:latest -o viewer.tar
+          
       - name: Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v2.0"
+          tag_name: v3.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v3.0"
           files: |
-            studio.tar.gz
-            viewer.tar.gz
+            studio.tar
+            viewer.tar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
