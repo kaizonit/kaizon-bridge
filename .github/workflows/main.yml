@@ -7,13 +7,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      # 1. تنصيب أداة الحسم Skopeo (تتخطى أخطاء Docker Pull)
-      - name: Install Skopeo
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y skopeo
-
-      # 2. بناء Evolution API من المصدر (النجاح المضمون الذي حققناه سابقاً)
+      # 1. بناء Evolution API من المصدر (النجاح المضمون 100%)
       - name: 🚀 Build Evolution API from Source
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
@@ -22,23 +16,31 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 3. جلب Typebot باستخدام Skopeo (تجاوز حظر Docker Hub وخطأ المانيفست)
-      - name: 🚀 Pull Typebot via Skopeo (Official Sources)
+      # 2. بناء Typebot Studio من المصدر (تجاوز حظر الصور الجاهزة)
+      - name: 🚀 Build Typebot Studio from Source
         run: |
-          # سحب النسخ الرسمية v2.27.0 وتحويلها لملفات مباشرة (هذا المسار لا يمكن حظره)
-          skopeo copy --src-no-creds docker://docker.io/typebot/studio:v2.27.0 docker-archive:studio.tar:typebot/studio:latest
-          skopeo copy --src-no-creds docker://docker.io/typebot/viewer:v2.27.0 docker-archive:viewer.tar:typebot/viewer:latest
-          
-          # ضغط الملفات لتقليل الحجم وسرعة النقل
-          gzip studio.tar
-          gzip viewer.tar
+          git clone --depth 1 https://github.com/baptisteArno/typebot.io.git
+          cd typebot.io
+          # بناء الاستوديو باستخدام سياق المجلد الرئيسي (هذا يحل خطأ lstat)
+          docker build -t typebot-studio:latest -f apps/studio/Dockerfile .
+          docker save typebot-studio:latest | gzip > ../studio.tar.gz
+          cd ..
+
+      # 3. بناء Typebot Viewer من المصدر (تجاوز حظر الصور الجاهزة)
+      - name: 🚀 Build Typebot Viewer from Source
+        run: |
+          cd typebot.io
+          # بناء العارض باستخدام سياق المجلد الرئيسي
+          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
+          docker save typebot-viewer:latest | gzip > ../viewer.tar.gz
+          cd ..
 
       # 4. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v23.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v23.0 - MISSION COMPLETE"
+          tag_name: v24.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v24.0 - FINAL SUCCESS"
           files: |
             evolution.tar.gz
             studio.tar.gz
