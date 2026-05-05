@@ -6,14 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: read
     steps:
-      # 1. إصلاح نظام العناوين داخل السيرفر (لضمان عدم حدوث no such host)
-      - name: 🛠️ DNS & System Fix
-        run: |
-          sudo echo "nameserver 8.8.8.8" > /etc/resolv.conf
-          sudo echo "nameserver 1.1.1.1" >> /etc/resolv.conf
-
-      # 2. بناء Evolution API (النجاح المضمون الذي حققناه سابقاً)
+      # 1. بناء Evolution API من المصدر (الذي نجحنا فيه 100% سابقاً)
       - name: 🚀 Build Evolution API from Source
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
@@ -22,31 +17,26 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 3. بناء Typebot Studio (بناء سيادي يتخطى حظر الصور)
-      - name: 🚀 Build Typebot Studio from Source
+      # 2. سحب Typebot من مستودع GitHub الرسمي (المسارات المصححة 100%)
+      - name: 🚀 Pull Typebot from GHCR
         run: |
-          git clone --depth 1 https://github.com/baptisteArno/typebot.io.git
-          cd typebot.io
-          # بناء الاستوديو (تم ضبط السياق ليتوافق مع هيكلية المشروع)
-          docker build -t typebot-studio:latest -f apps/studio/Dockerfile .
-          docker save typebot-studio:latest | gzip > ../studio.tar.gz
-          cd ..
+          # تسجيل الدخول لفتح الأبواب المغلقة
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          # السحب من المسارات الرسمية الصحيحة لعام 2026
+          docker pull ghcr.io/baptistearno/typebot-studio:latest
+          docker pull ghcr.io/baptistearno/typebot-viewer:latest
+          
+          # تحويلها لملفات مضغوطة
+          docker save ghcr.io/baptistearno/typebot-studio:latest | gzip > studio.tar.gz
+          docker save ghcr.io/baptistearno/typebot-viewer:latest | gzip > viewer.tar.gz
 
-      # 4. بناء Typebot Viewer (بناء سيادي يتخطى حظر الصور)
-      - name: 🚀 Build Typebot Viewer from Source
-        run: |
-          cd typebot.io
-          # بناء العارض (تم ضبط السياق ليتوافق مع هيكلية المشروع)
-          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
-          docker save typebot-viewer:latest | gzip > ../viewer.tar.gz
-          cd ..
-
-      # 5. إنشاء الإصدار النهائي ورفع الكنوز الثلاثة
+      # 3. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v21.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v21.0 - THE FINAL STRIKE"
+          tag_name: v22.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v22.0 - SUCCESS"
           files: |
             evolution.tar.gz
             studio.tar.gz
