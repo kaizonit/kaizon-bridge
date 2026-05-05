@@ -2,12 +2,14 @@ name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
 jobs:
-  transfer:
+  release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Pull and Save Images
+      - name: Force Pull and Save Images
         run: |
-          # سحب الصور (هنا سينجح لأن سيرفرات GitHub غير محظورة)
+          # سحب الصور (سيرفرات GitHub تملك إنترنت عسكري غير محظور)
           docker pull typebot/studio:latest
           docker pull typebot/viewer:latest
           
@@ -15,9 +17,13 @@ jobs:
           docker save typebot/studio:latest | gzip > studio.tar.gz
           docker save typebot/viewer:latest | gzip > viewer.tar.gz
 
-      - name: Upload to Transfer.sh
-        run: |
-          # رفع الملفات والحصول على روابط تحميل مباشرة
-          echo "### 🚀 Direct Download Links" >> $GITHUB_STEP_SUMMARY
-          echo "STUDIO_URL=$(curl --upload-file ./studio.tar.gz https://transfer.sh/studio.tar.gz)" >> $GITHUB_STEP_SUMMARY
-          echo "VIEWER_URL=$(curl --upload-file ./viewer.tar.gz https://transfer.sh/viewer.tar.gz)" >> $GITHUB_STEP_SUMMARY
+      - name: Create Sovereign Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack #${{ github.run_number }}"
+          files: |
+            studio.tar.gz
+            viewer.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
