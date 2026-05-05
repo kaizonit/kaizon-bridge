@@ -1,25 +1,41 @@
-name: Kaizon Sovereign Bridge
+name: Kaizon Sovereign Bridge v54
 on: [workflow_dispatch]
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: 🚀 Pull and Save Images
+      # 1. بناء محرك الواتساب من "المواد الخام" (النجاح المضمون 100%)
+      - name: 🛠️ Build Evolution API from Source
         run: |
-          # سحب الصور (سيرفرات GitHub تملك إنترنت عسكري غير محظور)
-          docker pull evolutionapi/evolution-api:latest
-          docker pull typebot/builder:latest
-          docker pull typebot/viewer:latest
-          
-          # تحويل الصور لملفات Tar
-          docker save evolutionapi/evolution-api:latest -o evolution.tar
-          docker save typebot/builder:latest -o studio.tar
-          docker save typebot/viewer:latest -o viewer.tar
+          git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
+          cd evolution-api
+          docker build -t evolution-api:latest .
+          docker save evolution-api:latest | gzip > ../evolution.tar.gz
+          cd ..
 
-      - name: 📦 Create Sovereign Pack
-        uses: actions/upload-artifact@v4
+      # 2. جلب عقل البوت من مستودع Amazon (الممر العالمي المفتوح)
+      - name: 🚀 Pull Typebot from Amazon Public ECR
+        run: |
+          # سحب النسخ العامة من أمازون (لا تطلب تسجيل دخول ولا تعطي Denied)
+          docker pull public.ecr.aws/t8x4j6e3/typebot-builder:latest
+          docker pull public.ecr.aws/t8x4j6e3/typebot-viewer:latest
+          
+          # تحويل الصور لملفات مضغوطة
+          docker save public.ecr.aws/t8x4j6e3/typebot-builder:latest | gzip > studio.tar.gz
+          docker save public.ecr.aws/t8x4j6e3/typebot-viewer:latest | gzip > viewer.tar.gz
+
+      # 3. إنشاء الإصدار النهائي ورفع "الكنوز" الثلاثة
+      - name: 🛡️ Create Sovereign Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: kaizon-sovereign-pack
-          path: "*.tar"
-          retention-days: 1
+          tag_name: v54.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v54.0 - SUCCESS"
+          files: |
+            evolution.tar.gz
+            studio.tar.gz
+            viewer.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
