@@ -1,26 +1,34 @@
-name: Kaizon Sovereign Bridge v53
+name: Kaizon Sovereign Bridge v54
 on: [workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 🚀 Pull and Save Images (Verified Sources)
-        run: |
-          # سحب الصور باستخدام ممرات GitHub الداخلية (المضمونة 100%)
-          docker pull elestio/typebot-studio:latest
-          docker pull elestio/typebot-viewer:latest
-          
-          # تحويل الصور لملفات مادية
-          docker save elestio/typebot-studio:latest -o studio.tar
-          docker save elestio/typebot-viewer:latest -o viewer.tar
-          
-          # ضغط الملفات لتقليل الحجم
-          tar -cvzf typebot_pack.tar.gz studio.tar viewer.tar
+      - name: Install Skopeo
+        run: sudo apt-get update && sudo apt-get install -y skopeo
 
-      - name: 📦 Upload to GitHub Vault
+      - name: 🚀 Force Fetch Typebot (Official 2026 Names)
+        run: |
+          # سحب عقل البوت (Builder) والواجهة (Viewer) بالأسماء الرسمية
+          # استخدمنا مرآة m.daocloud.io لأنها الأقوى حالياً لتخطي حظر Docker Hub
+          skopeo copy --src-no-creds docker://docker.m.daocloud.io/typebot/builder:latest docker-archive:studio.tar:typebot/studio:latest
+          skopeo copy --src-no-creds docker://docker.m.daocloud.io/typebot/viewer:latest docker-archive:viewer.tar:typebot/viewer:latest
+
+      - name: 🚀 Build Evolution API (The Proven Success)
+        run: |
+          git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
+          cd evolution-api
+          docker build -t evolution-api:latest .
+          docker save evolution-api:latest > ../evolution.tar
+          cd ..
+
+      - name: 📦 Create Final Sovereign Pack
+        run: tar -cvzf kaizon_final_pack.tar.gz studio.tar viewer.tar evolution.tar
+
+      - name: 📤 Upload to GitHub Vault
         uses: actions/upload-artifact@v4
         with:
-          name: kaizon-typebot-pack
-          path: typebot_pack.tar.gz
+          name: kaizon-master-package
+          path: kaizon_final_pack.tar.gz
           retention-days: 1
