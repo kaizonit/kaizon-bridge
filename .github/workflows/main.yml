@@ -1,4 +1,4 @@
-name: Kaizon Sovereign Brute Force
+name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
 jobs:
@@ -6,36 +6,22 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: read
     steps:
-      - name: 🚀 Brute Force Pulling (Trying all 2026 Mirrors)
+      - name: 🔑 Authenticate with GitHub Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: 🚀 Pull Official Images (The Sovereign Path)
         run: |
-          # قائمة المرايا السيادية المحدثة لعام 2026
-          MIRRORS=("docker.anyhub.us.kg" "docker.1panel.live" "dockerpull.com" "docker.m.daocloud.io" "docker.unsee.tech")
+          # السحب من مستودع GitHub الرسمي مباشرة باستخدام التوثيق
+          docker pull ghcr.io/typebot/typebot/studio:latest
+          docker pull ghcr.io/typebot/typebot/viewer:latest
           
-          SUCCESS=false
-          for mirror in "${MIRRORS[@]}"; do
-            echo "Trying mirror: $mirror"
-            if docker pull $mirror/typebot/studio:latest; then
-              echo "✅ SUCCESS WITH $mirror"
-              docker tag $mirror/typebot/studio:latest typebot/studio:latest
-              docker pull $mirror/typebot/viewer:latest
-              docker tag $mirror/typebot/viewer:latest typebot/viewer:latest
-              SUCCESS=true
-              break
-            fi
-          done
+          # إعادة التسمية للأسماء الأصلية
+          docker tag ghcr.io/typebot/typebot/studio:latest typebot/studio:latest
+          docker tag ghcr.io/typebot/typebot/viewer:latest typebot/viewer:latest
 
-          if [ "$SUCCESS" = false ]; then
-            echo "❌ ALL MIRRORS FAILED - TRYING GHCR PRIVATE PATH"
-            docker pull ghcr.io/typebot/typebot/studio:latest && \
-            docker tag ghcr.io/typebot/typebot/studio:latest typebot/studio:latest && \
-            docker pull ghcr.io/typebot/typebot/viewer:latest && \
-            docker tag ghcr.io/typebot/typebot/viewer:latest typebot/viewer:latest && SUCCESS=true
-          fi
-
-          if [ "$SUCCESS" = false ]; then exit 1; fi
-
-      - name: 📦 Save and Compress (The Physical Pack)
+      - name: 📦 Save and Compress (Physical Injection)
         run: |
           docker save typebot/studio:latest | gzip > studio.tar.gz
           docker save typebot/viewer:latest | gzip > viewer.tar.gz
@@ -43,8 +29,8 @@ jobs:
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v4.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v4.0"
+          tag_name: v5.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v5.0"
           files: |
             studio.tar.gz
             viewer.tar.gz
