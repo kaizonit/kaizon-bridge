@@ -6,7 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: read
     steps:
+      # 1. بناء Evolution API (الذي نجحنا فيه قبل قليل)
       - name: 🚀 Build Evolution API from Source
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
@@ -15,27 +17,26 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      - name: 🚀 Build Typebot Studio from Source
+      # 2. سحب Typebot من مستودع GitHub المضمون (لتجنب أخطاء البناء الطويلة)
+      - name: 🚀 Pull Typebot from GHCR
         run: |
-          git clone --depth 1 https://github.com/baptisteArno/typebot.io.git
-          cd typebot.io
-          # بناء النسخ الخفيفة لضمان السرعة والنجاح
-          docker build -t typebot-studio:latest -f apps/studio/Dockerfile .
-          docker save typebot-studio:latest | gzip > ../studio.tar.gz
-          cd ..
+          # تسجيل الدخول لمستودع GitHub لضمان عدم الرفض
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          # سحب النسخ المستقرة
+          docker pull ghcr.io/elestio-examples/typebot-studio:latest
+          docker pull ghcr.io/elestio-examples/typebot-viewer:latest
+          
+          # تحويلها لملفات
+          docker save ghcr.io/elestio-examples/typebot-studio:latest | gzip > studio.tar.gz
+          docker save ghcr.io/elestio-examples/typebot-viewer:latest | gzip > viewer.tar.gz
 
-      - name: 🚀 Build Typebot Viewer from Source
-        run: |
-          cd typebot.io
-          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
-          docker save typebot-viewer:latest | gzip > ../viewer.tar.gz
-          cd ..
-
+      # 3. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v10.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v10.0"
+          tag_name: v12.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v12.0 - FINAL"
           files: |
             evolution.tar.gz
             studio.tar.gz
