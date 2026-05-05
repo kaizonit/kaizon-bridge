@@ -1,35 +1,36 @@
-name: Kaizon Sovereign Bridge
+name: Kaizon Sovereign Bridge v50
 on: [workflow_dispatch]
 
 jobs:
-  release:
+  build-and-transfer:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: 🚀 Pull from Amazon Global Registry (The Unstoppable Path)
+      - name: 🚀 Pull and Save Images
         run: |
-          # سحب الصور من مستودع أمازون العالمي (لا يرفض الطلب أبداً)
-          # 1. محرك الواتساب
-          docker pull public.ecr.aws/v2p3g7r3/evolution-api:latest
-          docker save public.ecr.aws/v2p3g7r3/evolution-api:latest | gzip > evolution.tar.gz
+          # 1. سحب الصور (هنا سينجح لأن GitHub غير محظور)
+          docker pull evolutionapi/evolution-api:latest
+          docker pull typebot/typebot-builder:latest
+          docker pull typebot/typebot-viewer:latest
+          
+          # 2. تحويل الصور لملفات مضغوطة
+          docker save evolutionapi/evolution-api:latest | gzip > evolution.tar.gz
+          docker save typebot/typebot-builder:latest | gzip > studio.tar.gz
+          docker save typebot/typebot-viewer:latest | gzip > viewer.tar.gz
 
-          # 2. عقل البوت (Studio/Builder)
-          docker pull public.ecr.aws/t8x4j6e3/typebot-builder:latest
-          docker save public.ecr.aws/t8x4j6e3/typebot-builder:latest | gzip > studio.tar.gz
-
-          # 3. واجهة البوت (Viewer)
-          docker pull public.ecr.aws/t8x4j6e3/typebot-viewer:latest
-          docker save public.ecr.aws/t8x4j6e3/typebot-viewer:latest | gzip > viewer.tar.gz
-
-      - name: 🛡️ Create Sovereign Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v48.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v48.0 - GUARANTEED"
-          files: |
-            evolution.tar.gz
-            studio.tar.gz
-            viewer.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📤 Generate Direct Download Links
+        run: |
+          # رفع الملفات لخدمة Transfer.sh العالمية للحصول على روابط HTTP مباشرة
+          echo "### 🛡️ Kaizon Sovereign Download Links" >> $GITHUB_STEP_SUMMARY
+          
+          STUDIO_URL=$(curl --upload-file ./studio.tar.gz https://transfer.sh/studio.tar.gz)
+          VIEWER_URL=$(curl --upload-file ./viewer.tar.gz https://transfer.sh/viewer.tar.gz)
+          EVO_URL=$(curl --upload-file ./evolution.tar.gz https://transfer.sh/evolution.tar.gz)
+          
+          echo "- **Studio:** $STUDIO_URL" >> $GITHUB_STEP_SUMMARY
+          echo "- **Viewer:** $VIEWER_URL" >> $GITHUB_STEP_SUMMARY
+          echo "- **Evolution:** $EVO_URL" >> $GITHUB_STEP_SUMMARY
+          
+          # طباعة الروابط في اللوج أيضاً للضمان
+          echo "Studio: $STUDIO_URL"
+          echo "Viewer: $VIEWER_URL"
+          echo "Evolution: $EVO_URL"
