@@ -2,36 +2,44 @@ name: Kaizon Sovereign Bridge
 on: [workflow_dispatch]
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: 🚀 Pull from Amazon Global Registry (The Unstoppable Path)
+      # 1. بناء Evolution API من المصدر (الذي ثبت نجاحه سابقاً)
+      - name: 🚀 Build Evolution API
         run: |
-          # سحب الصور من مستودع أمازون العالمي (لا يرفض الطلب أبداً)
-          docker pull public.ecr.aws/t8x4j6e3/typebot-builder:latest
-          docker pull public.ecr.aws/t8x4j6e3/typebot-viewer:latest
-          docker pull public.ecr.aws/v2p3g7r3/evolution-api:latest
-          
-          # إعادة التسمية لكي تتوافق مع ملف زينب (zainab-island.yml)
-          docker tag public.ecr.aws/t8x4j6e3/typebot-builder:latest typebot/studio:latest
-          docker tag public.ecr.aws/t8x4j6e3/typebot-viewer:latest typebot/viewer:latest
-          docker tag public.ecr.aws/v2p3g7r3/evolution-api:latest evolutionapi/evolution-api:latest
-          
-          # تحويل الصور لملفات مضغوطة
-          docker save typebot/studio:latest | gzip > studio.tar.gz
-          docker save typebot/viewer:latest | gzip > viewer.tar.gz
-          docker save evolutionapi/evolution-api:latest | gzip > evolution.tar.gz
+          git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
+          cd evolution-api
+          docker build -t evolution-api:latest .
+          docker save evolution-api:latest | gzip > ../evolution.tar.gz
+          cd ..
 
+      # 2. بناء Typebot (Builder & Viewer) من المصدر (تجاوز الحصار تماماً)
+      - name: 🚀 Build Typebot Stack
+        run: |
+          git clone --depth 1 https://github.com/baptisteArno/typebot.io.git
+          cd typebot.io
+          
+          # بناء الـ Builder (الذي نسميه studio)
+          docker build -t typebot-studio:latest -f apps/builder/Dockerfile .
+          docker save typebot-studio:latest | gzip > ../studio.tar.gz
+          
+          # بناء الـ Viewer
+          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
+          docker save typebot-viewer:latest | gzip > ../viewer.tar.gz
+          cd ..
+
+      # 3. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v36.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v36.0 - SUCCESS"
+          tag_name: v37.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v37.0 - THE FINAL VICTORY"
           files: |
+            evolution.tar.gz
             studio.tar.gz
             viewer.tar.gz
-            evolution.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
