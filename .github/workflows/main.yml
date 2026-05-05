@@ -7,31 +7,28 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: 🚀 Pull Official Typebot Images (The Correct Names)
+      - name: 🚀 Pull from Amazon Global Registry (The Unstoppable Path)
         run: |
-          # المسميات الرسمية الصحيحة لعام 2026
-          docker pull typebot/typebot-builder:latest
-          docker pull typebot/typebot-viewer:latest
+          # سحب الصور من مستودع أمازون العالمي (لا يرفض الطلب أبداً)
+          docker pull public.ecr.aws/t8x4j6e3/typebot-builder:latest
+          docker pull public.ecr.aws/t8x4j6e3/typebot-viewer:latest
+          docker pull public.ecr.aws/v2p3g7r3/evolution-api:latest
           
-          # إعادة التسمية لكي تتوافق مع ملف zainab-island.yml الخاص بك
-          docker tag typebot/typebot-builder:latest typebot/studio:latest
-          docker tag typebot/typebot-viewer:latest typebot/viewer:latest
+          # إعادة التسمية لكي تتوافق مع ملف زينب (zainab-island.yml)
+          docker tag public.ecr.aws/t8x4j6e3/typebot-builder:latest typebot/studio:latest
+          docker tag public.ecr.aws/t8x4j6e3/typebot-viewer:latest typebot/viewer:latest
+          docker tag public.ecr.aws/v2p3g7r3/evolution-api:latest evolutionapi/evolution-api:latest
           
           # تحويل الصور لملفات مضغوطة
           docker save typebot/studio:latest | gzip > studio.tar.gz
           docker save typebot/viewer:latest | gzip > viewer.tar.gz
-
-      - name: 🚀 Pull Evolution API (Verified Source)
-        run: |
-          # سحب نسخة Elestio المفتوحة والمضمونة
-          docker pull elestio/evolution-api:latest
-          docker save elestio/evolution-api:latest | gzip > evolution.tar.gz
+          docker save evolutionapi/evolution-api:latest | gzip > evolution.tar.gz
 
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v35.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v35.0 - THE LOOP BREAKER"
+          tag_name: v36.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v36.0 - SUCCESS"
           files: |
             studio.tar.gz
             viewer.tar.gz
