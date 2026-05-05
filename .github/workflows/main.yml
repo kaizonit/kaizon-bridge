@@ -1,39 +1,26 @@
-name: Kaizon Sovereign Bridge v51
+name: Kaizon Sovereign Bridge v53
 on: [workflow_dispatch]
 
 jobs:
-  build-and-transfer:
+  build:
     runs-on: ubuntu-latest
     steps:
-      # 1. بناء محرك الواتساب من "المواد الخام" (هذا المسار مستحيل حظره)
-      - name: 🛠️ Build Evolution API from Source
+      - name: 🚀 Pull and Save Images (Verified Sources)
         run: |
-          git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
-          cd evolution-api
-          docker build -t evolution-api:latest .
-          docker save evolution-api:latest | gzip > ../evolution.tar.gz
-          cd ..
+          # سحب الصور باستخدام ممرات GitHub الداخلية (المضمونة 100%)
+          docker pull elestio/typebot-studio:latest
+          docker pull elestio/typebot-viewer:latest
+          
+          # تحويل الصور لملفات مادية
+          docker save elestio/typebot-studio:latest -o studio.tar
+          docker save elestio/typebot-viewer:latest -o viewer.tar
+          
+          # ضغط الملفات لتقليل الحجم
+          tar -cvzf typebot_pack.tar.gz studio.tar viewer.tar
 
-      # 2. جلب عقل البوت من مستودع Elestio المفتوح (تجاوز حظر Docker Hub)
-      - name: 🚀 Pull Typebot from Verified Public Mirror
-        run: |
-          # سحب النسخ العامة من Elestio على مستودع GitHub (مفتوح 100%)
-          docker pull ghcr.io/elestio-examples/typebot-studio:latest
-          docker pull ghcr.io/elestio-examples/typebot-viewer:latest
-          
-          # تحويل الصور لملفات مضغوطة
-          docker save ghcr.io/elestio-examples/typebot-studio:latest | gzip > studio.tar.gz
-          docker save ghcr.io/elestio-examples/typebot-viewer:latest | gzip > viewer.tar.gz
-
-      # 3. رفع الملفات والحصول على روابط تحميل مباشرة (عبر Transfer.sh)
-      - name: 📤 Generate Direct Download Links
-        run: |
-          echo "### 🚀 Kaizon Sovereign Pack v51" >> $GITHUB_STEP_SUMMARY
-          
-          STUDIO_URL=$(curl --upload-file ./studio.tar.gz https://transfer.sh/studio_kzn.tar.gz)
-          VIEWER_URL=$(curl --upload-file ./viewer.tar.gz https://transfer.sh/viewer_kzn.tar.gz)
-          EVO_URL=$(curl --upload-file ./evolution.tar.gz https://transfer.sh/evolution_kzn.tar.gz)
-          
-          echo "- **Studio:** $STUDIO_URL" >> $GITHUB_STEP_SUMMARY
-          echo "- **Viewer:** $VIEWER_URL" >> $GITHUB_STEP_SUMMARY
-          echo "- **Evolution:** $EVO_URL" >> $GITHUB_STEP_SUMMARY
+      - name: 📦 Upload to GitHub Vault
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaizon-typebot-pack
+          path: typebot_pack.tar.gz
+          retention-days: 1
