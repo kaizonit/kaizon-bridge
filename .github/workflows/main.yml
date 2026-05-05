@@ -7,8 +7,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      # 1. بناء Evolution API من المصدر (الذي ثبت نجاحه سابقاً)
-      - name: 🚀 Build Evolution API
+      # 1. بناء محرك الواتساب (النجاح المضمون)
+      - name: 🚀 Build Evolution API from Source
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
           cd evolution-api
@@ -16,27 +16,27 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 2. بناء Typebot (Builder & Viewer) من المصدر (تجاوز الحصار تماماً)
-      - name: 🚀 Build Typebot Stack
+      # 2. سحب عقل البوت باستخدام مرآة جوجل العالمية (تجاوز الحظر 100%)
+      - name: 🚀 Pull Typebot via Google Mirror
         run: |
-          git clone --depth 1 https://github.com/baptisteArno/typebot.io.git
-          cd typebot.io
+          # سحب الصور من ممر جوجل الآمن
+          docker pull mirror.gcr.io/typebot/typebot-builder:latest
+          docker pull mirror.gcr.io/typebot/typebot-viewer:latest
           
-          # بناء الـ Builder (الذي نسميه studio)
-          docker build -t typebot-studio:latest -f apps/builder/Dockerfile .
-          docker save typebot-studio:latest | gzip > ../studio.tar.gz
+          # إعادة التسمية لكي يراها ملف الـ Compose الخاص بك
+          docker tag mirror.gcr.io/typebot/typebot-builder:latest typebot/studio:latest
+          docker tag mirror.gcr.io/typebot/typebot-viewer:latest typebot/viewer:latest
           
-          # بناء الـ Viewer
-          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
-          docker save typebot-viewer:latest | gzip > ../viewer.tar.gz
-          cd ..
+          # تحويل الصور لملفات مضغوطة
+          docker save typebot/studio:latest | gzip > studio.tar.gz
+          docker save typebot/viewer:latest | gzip > viewer.tar.gz
 
-      # 3. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
+      # 3. إنشاء الإصدار النهائي ورفع الكنوز الثلاثة
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v37.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v37.0 - THE FINAL VICTORY"
+          tag_name: v38.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v38.0 - THE FINAL"
           files: |
             evolution.tar.gz
             studio.tar.gz
