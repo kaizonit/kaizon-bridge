@@ -7,8 +7,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      # 1. بناء Evolution API (النجاح المضمون)
-      - name: 🚀 Build Evolution API
+      # 1. بناء Evolution API (الذي نجحنا فيه 100% سابقاً)
+      - name: 🚀 Build Evolution API from Source
         run: |
           git clone --depth 1 https://github.com/EvolutionAPI/evolution-api.git
           cd evolution-api
@@ -16,31 +16,23 @@ jobs:
           docker save evolution-api:latest | gzip > ../evolution.tar.gz
           cd ..
 
-      # 2. بناء Typebot Studio (بناء سيادي من الكود المصدري)
-      - name: 🚀 Build Typebot Studio
+      # 2. سحب Typebot من مستودع Amazon AWS المضمون (لا يحظر أحداً)
+      - name: 🚀 Pull Typebot from AWS Public ECR
         run: |
-          git clone --depth 1 https://github.com/baptisteArno/typebot.io.git
-          cd typebot.io
-          # بناء الاستوديو باستخدام السياق الصحيح للمجلدات
-          docker build -t typebot-studio:latest -f apps/studio/Dockerfile .
-          docker save typebot-studio:latest | gzip > ../studio.tar.gz
-          cd ..
+          # سحب النسخ المستقرة من مستودع أمازون العالمي
+          docker pull public.ecr.aws/t8x4j6e3/typebot-studio:latest
+          docker pull public.ecr.aws/t8x4j6e3/typebot-viewer:latest
+          
+          # تحويلها لملفات مضغوطة
+          docker save public.ecr.aws/t8x4j6e3/typebot-studio:latest | gzip > studio.tar.gz
+          docker save public.ecr.aws/t8x4j6e3/typebot-viewer:latest | gzip > viewer.tar.gz
 
-      # 3. بناء Typebot Viewer (بناء سيادي من الكود المصدري)
-      - name: 🚀 Build Typebot Viewer
-        run: |
-          cd typebot.io
-          # بناء العارض باستخدام السياق الصحيح للمجلدات
-          docker build -t typebot-viewer:latest -f apps/viewer/Dockerfile .
-          docker save typebot-viewer:latest | gzip > ../viewer.tar.gz
-          cd ..
-
-      # 4. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
+      # 3. إنشاء الإصدار النهائي ورفع الملفات الثلاثة
       - name: 🛡️ Create Sovereign Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v16.0.${{ github.run_number }}
-          name: "Kaizon Sovereign Pack v16.0 - THE FINAL VICTORY"
+          tag_name: v17.0.${{ github.run_number }}
+          name: "Kaizon Sovereign Pack v17.0 - AWS POWER"
           files: |
             evolution.tar.gz
             studio.tar.gz
